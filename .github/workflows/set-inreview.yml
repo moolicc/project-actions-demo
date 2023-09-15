@@ -89,9 +89,9 @@ jobs:
           echo 'REVIEW_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="🔍 Review") |.id' project_data.json) >> $GITHUB_ENV
 
 
-      - name: Get issue node IDs
+      - name: Get issue IDs
         if: steps.has_issues.conclusion != 'skipped'
-        id: get_ids
+        id: get_issue_ids
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.TOKEN }}
@@ -115,7 +115,7 @@ jobs:
                   }`);
                 issueIds.push(result.repository.issue.id);
               } catch (error) {
-                core.setOutput('error', num);
+                core.setOutput('error', error);
               }
             }
 
@@ -123,11 +123,73 @@ jobs:
             return;
             
 
-      - name: test
-        run: echo ${{ steps.get_ids.outputs.ids }}
+      - name: Print issue IDs
+        run: echo ${{ steps.get_issue_ids.outputs.ids }}
             
+      - name: Get project item IDs
+        if: steps.has_issues.conclusion != 'skipped'
+        id: get_project_ids
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          result-encoding: string
+          script: |
+            const projectId = process.env.PROJECT_ID;
+            const issueIdOutput = '${{ steps.get_issue_ids.outputs.ids }}';
+            const issueIds = issueIdOutput.split(','), x => Number(x);
+
+            var itemIds = [];
+            try {
+              var cursor = null;
+              do {
+                var result = await github.graphql(`
+                  query {
+                    rateLimit {
+                      cost
+                      remaining
+                    }
+                    node(id: ${projectId}) {
+                      ... on ProjectV2 {
+                        items(first: 100, after: ${cursor}) {
+                          pageInfo {
+                            hasNextPage
+                            endCursor
+                          }
+                          nodes {
+                            id
+                            content {
+                              ... on Issue {
+                                id
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                `;
+                for(const node of result.node.items.nodes) {
+                  if(!node || !node.content) {
+                    continue;
+                  }
+                  const index = issueIds.indexOf(node.content.id)
+                  if(index >= 0) {
+                    issueIds.splice(index, 1);
+                    itemIds.push(node.id);
+                  }
+                }
+                cursor = result.node.items.pageInfo.endCursor;
+              } while (issueIds.length > 0 && result.node.items.pageInfo.hasNextPage);
+            } catch (error) {
+                core.setOutput('error', error);
+            }
             
-            
+
+            core.setOutput('ids', itemIds.join());
+            return;
+      
+      - name: Print item IDs
+        run: echo ${{ steps.get_project_ids.outputs.ids }}
           
       - name: Update feature status
         if: steps.has_issues.conclusion != 'skipped'
