@@ -128,7 +128,7 @@ jobs:
             
       - name: Get project item IDs
         if: steps.has_issues.conclusion != 'skipped'
-        id: get_project_ids
+        id: get_item_ids
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.TOKEN }}
@@ -183,37 +183,52 @@ jobs:
             } catch (error) {
                 core.setOutput('error', error);
             }
-            
 
             core.setOutput('ids', itemIds.join());
             return;
       
       - name: Print item IDs
-        run: echo ${{ steps.get_project_ids.outputs.ids }}
+        run: echo ${{ steps.get_item_ids.outputs.ids }}
           
-      - name: Update feature status
+      - name: Update item statuses
         if: steps.has_issues.conclusion != 'skipped'
-        env:
-          GH_TOKEN: ${{ secrets.TOKEN }}
-        run: |
-          gh api graphql -f query='
-            mutation (
-              $project: ID!
-              $item: ID!
-              $status_field: ID!
-              $status_value: String!
-            ) {
-              set_status: updateProjectV2ItemFieldValue(input: {
-                projectId: $project
-                itemId: $item
-                fieldId: $status_field
-                value: {
-                  singleSelectOptionId: $status_value
-                }
-              }) {
-                projectV2Item {
-                  id
-                }
-              }' -f project=$PROJECT_ID -f item=$ITEM_ID -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.REVIEW_OPTION_ID }}
-        
-            
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          result-encoding: string
+          script: |
+            const projectId = process.env.PROJECT_ID;
+            const fieldId = process.env.STATUS_FIELD_ID;
+            const optionId = process.env.REVIEW_OPTION_ID
+            const itemIdOutput = '${{ steps.get_item_ids.outputs.ids }}';
+            const ids = itemIdOutput.split(',');
+
+            try {
+              for(const id of ids) {
+                var result = await github.graphql(`
+                  query {
+                    mutation (
+                      $project: ID!
+                      $item: ID!
+                      $status_field: ID!
+                      $status_value: String!
+                    ) {
+                      set_status: updateProjectV2ItemFieldValue(input: {
+                        projectId: ${projectId}
+                        item: ${id}
+                        status_field: ${fieldId}
+                        status_value: {
+                          singleSelectOptionId: ${optionId}
+                        }
+                      }) {
+                        projectV2Item {
+                          id
+                        }
+                      }
+                    }
+                  }
+                `);
+              }
+            } catch(error) {
+              core.setOutput('error', error);
+            }
