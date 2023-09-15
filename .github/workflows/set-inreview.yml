@@ -98,12 +98,12 @@ jobs:
           result-encoding: string
           script: |
             var issueIdVariables = {
-              owner: 'moolicc',
-              repo: 'project-actions-demo'
+              owner: "moolicc",
+              repo: "project-actions-demo"
             }
             var issueIdQuery = `
-              query=($owner: String!, $repo: String!, $issueNumber: Int!) {
-                repository(owner: $owner, name: $repo) {
+              query=($issueNumber: Int!) {
+                repository(owner: "moolicc", name: "project-actions-demo") {
                   id
                   issue(number: $issueNumber) {
                     id
