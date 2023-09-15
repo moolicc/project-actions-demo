@@ -119,7 +119,7 @@ jobs:
             for(var num of numbers) {
               issueIdVariables.issueNumber = num;
               try {
-                result = await github.graphql(issueIdQuery, issueIdVariables);
+                var result = await github.graphql(issueIdQuery, issueIdVariables);
                 core.notice(result)
                 core.notice(result.repository)
                 issueIds.push(result.repository.issue.id);
