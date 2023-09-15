@@ -217,3 +217,4 @@ jobs:
           echo ${{ steps.update_statuses.outputs.itemIds }}
           echo ${{ steps.update_statuses.outputs.field }}
           echo ${{ steps.update_statuses.outputs.value }}
+          echo ${{ steps.update_statuses.outputs.error }}
