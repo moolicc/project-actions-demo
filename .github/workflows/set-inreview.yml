@@ -1,0 +1,38 @@
+name: Set issue to In Review
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types:
+      - closed
+
+jobs:
+  Find-Linked-Issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_KEY }}
+
+      - name: Get project information
+        env:
+          GH_TOKEN: ${{ steps.generate_token.output.token }}
+          USER: moolicc
+          PROJ_NUMBER: 8
+        run: |
+          gh api graphql -f query='
+            query($user: String!, $num: Int!) {
+              user(login: $user) {
+                projectV2(number: $num) {
+                  id
+                }
+              }
+            }' -f user=$USER -F num=$PROJ_NUM > project_data.json
+            echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
+            echo $PROJECT_ID
+            
