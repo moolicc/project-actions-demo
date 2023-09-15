@@ -121,8 +121,9 @@ jobs:
               issueIdVariables.issueNumber = num;
               try {
                 result = await github.graphql(issueIdQuery, issueIdVariables);
-                core.notice(result)
-                core.notice(result.repository)
+                core.error(result)
+                core.error(result.repository)
+                console.log(result);
                 issueIds.push(result.repository.issue.id);
               } catch (error) {
                 result = error.data;
