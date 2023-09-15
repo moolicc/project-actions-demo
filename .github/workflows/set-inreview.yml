@@ -44,7 +44,71 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
       - name: Print linked issues
+        if: join(steps.get_issues.outputs.issues) != ""
+        id: has_issues
         run: echo ${{ steps.get_issues.outputs.issues }}
+        
+      - name: No linked issues
+        if: steps.has_issues.conclusion == 'skipped'
+        run: echo No linked issues found for PR.
 
+      - name: Get project fields
+        if: steps.has_issues.conclusion != 'skipped'
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          USER: moolicc
+          PROJ_NUMBER: 8
+        run: |
+          gh api graphql -f query='
+            query($user: String!, $number: Int!) {
+              user(login: $user) {
+                id
+                fields(first:20) {
+                  nodes {
+                    ... on ProjectV2Field {
+                      id
+                      name
+                    }
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f user=$USER -F number=$PROJ_NUMBER > project_data.json
+
+          echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
+          echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_END
+          echo 'REVIEW_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="Review") |.id' project_data.json) >> $GITHUB_ENV
+    
+      - name: Update feature status
+        if: steps.has_issues.conclusion != 'skipped'
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          gh api graphql -f query='
+            mutation (
+              $project: ID!
+              $item: ID!
+              $status_field: ID!
+              $status_value: String!
+            ) {
+              set_status: updateProjectV2ItemFieldValue(input: {
+                projectId: $project
+                itemId: $item
+                fieldId: $status_field
+                value: {
+                  singleSelectOptionId: $status_value
+                }
+              }) {
+                projectV2Item {
+                  id
+                }
+              }' -f project=$PROJECT_ID -f item=$ITEM_ID -f status_field=$STATUS_FIELD_ID -f status_value=${{ env.REVIEW_OPTION_ID }}
         
             
