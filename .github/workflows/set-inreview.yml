@@ -218,3 +218,4 @@ jobs:
           echo ${{ steps.update_statuses.outputs.field }}
           echo ${{ steps.update_statuses.outputs.value }}
           echo ${{ steps.update_statuses.outputs.error }}
+          echo ${{ steps.update_statuses.outputs.e }}
