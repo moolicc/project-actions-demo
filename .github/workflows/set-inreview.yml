@@ -134,7 +134,7 @@ jobs:
           github-token: ${{ secrets.TOKEN }}
           result-encoding: string
           script: |
-            const projectId = process.env.PROJECT_ID;
+            const projectId = os.getenv('PROJECT_ID');
             const issueIdOutput = '${{ steps.get_issue_ids.outputs.ids }}';
             const issueIds = issueIdOutput.split(','), x => Number(x);
 
