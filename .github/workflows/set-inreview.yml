@@ -180,26 +180,25 @@ jobs:
             const ids = itemIdOutput.split(',');
 
             try {
-              for(const id of ids) {
-                var result = await github.graphql(`
-                  mutation {
-                    updateProjectV2ItemFieldValue(
-                      input: {
-                        projectId: "${projectId}"
-                        itemId: "${id}"
-                        fieldId: "${fieldId}"
-                        value: {
-                          singleSelectOptionId: "${valueId}"
-                        }
-                      }
-                    ) {
-                      projectV2Item {
-                        id
+              var result = await github.graphql(`
+                mutation {
+                  updateProjectV2ItemFieldValue(
+                    input: {
+                      projectId: "PVT_kwHOAa7HUc4AVVQf"
+                      itemId: "PVTI_lAHOAa7HUc4AVVQfzgJPU-M"
+                      fieldId: "PVTSSF_lAHOAa7HUc4AVVQfzgNoaDs"
+                      value: {
+                        singleSelectOptionId: "757f94b2"
                       }
                     }
+                  ) {
+                  projectV2Item {
+                    id
                   }
-                `);
+                }
               }
+              `);
+              
             } catch(error) {
               core.setOutput('error', error);
             }
