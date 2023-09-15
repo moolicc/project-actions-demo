@@ -116,10 +116,11 @@ jobs:
             const numbers = Array.from(issueNumOutput.split(','), x => Number(x));
 
             var issueIds = [];
+            var result = {};
             for(var num of numbers) {
               issueIdVariables.issueNumber = num;
               try {
-                var result = await github.graphql(issueIdQuery, issueIdVariables);
+                result = await github.graphql(issueIdQuery, issueIdVariables);
                 core.notice(result)
                 core.notice(result.repository)
                 issueIds.push(result.repository.issue.id);
