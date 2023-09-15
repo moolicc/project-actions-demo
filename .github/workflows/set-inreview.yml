@@ -167,6 +167,7 @@ jobs:
           
       - name: Update item statuses
         if: steps.has_issues.conclusion != 'skipped'
+        id: update_statuses
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.TOKEN }}
@@ -179,7 +180,6 @@ jobs:
             const ids = itemIdOutput.split(',');
 
             try {
-              core.setOutput('error', ids.length);
               for(const id of ids) {
                 var result = await github.graphql(`
                   mutation {
@@ -203,4 +203,17 @@ jobs:
             } catch(error) {
               core.setOutput('error', error);
             }
+
+            
+            core.setOutput('proj', projectId);
+            core.setOutput('itemIds', itemIdOutput);
+            core.setOutput('field', fieldId);
+            core.setOutput('value', valueId);
             return;
+            
+      - name: Print status update results
+        run: |
+          echo ${{ steps.update_statuses.outputs.proj }}
+          echo ${{ steps.update_statuses.outputs.itemIds }}
+          echo ${{ steps.update_statuses.outputs.field }}
+          echo ${{ steps.update_statuses.outputs.value }}
