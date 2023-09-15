@@ -90,8 +90,9 @@ jobs:
 
 
       - name: Get issue node IDs
-        id: get_ids
         if: steps.has_issues.conclusion != 'skipped'
+        id: get_ids
+        uses: actions/github-script@v6
         with:
           github_token: ${{ secrets.TOKEN }}
           result-encoding: string
