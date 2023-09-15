@@ -117,7 +117,7 @@ jobs:
 
             var issueIds = [];
             for(var num of numbers) {
-              variables.issueIdVariables = num;
+              issueIdVariables.issueNumber = num;
               try {
                 result = await github.graphql(issueIdQuery, issueIdVariables);
                 issueIds.push(result.repository.issue.id);
