@@ -85,7 +85,7 @@ jobs:
             }' -f user=$USER -F number=$PROJ_NUMBER > project_data.json
 
           echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
-          echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_END
+          echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_ENV
           echo 'REVIEW_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="Review") |.id' project_data.json) >> $GITHUB_ENV
     
       - name: Update feature status
