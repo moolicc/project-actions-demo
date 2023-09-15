@@ -120,7 +120,16 @@ jobs:
             for(var num of numbers) {
               issueIdVariables.issueNumber = num;
               try {
-                result = await github.graphql(issueIdQuery, issueIdVariables);
+                //result = await github.graphql(issueIdQuery, issueIdVariables);
+                result = await github.graphql(`
+                  query {
+                    repository(owner: "moolicc", name: "project-actions-demo") {
+                      id
+                      issue(number: 7){
+                        id
+                      }
+                    }
+                  }`);
                 issueIds.push(result.data.repository.issue.id);
               } catch (error) {
                 result = error.data;
