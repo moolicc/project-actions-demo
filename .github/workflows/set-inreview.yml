@@ -113,7 +113,7 @@ jobs:
             `;
 
             const issueNumOutput = '${{ steps.get_issues.outputs.issues }}'
-            const numbers = Array.from(issueNums.split(','), x => Number(x));
+            const numbers = Array.from(issueNumOutput.split(','), x => Number(x));
 
             var issueIds = [];
             for(var num of numbers) {
