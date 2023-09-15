@@ -94,7 +94,7 @@ jobs:
         id: get_ids
         uses: actions/github-script@v6
         with:
-          github_token: ${{ secrets.TOKEN }}
+          github-token: ${{ secrets.TOKEN }}
           result-encoding: string
           script: |
             var issueIdVariables = {
