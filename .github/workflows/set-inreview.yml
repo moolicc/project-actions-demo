@@ -12,31 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      #- name: Generate token
-      #  id: generate_token
-      #  uses: actions/create-github-app-token@v1
-      #  with:
-      #    app_id: ${{ secrets.APP_ID }}
-      #    private_key: ${{ secrets.APP_KEY }}
-
-      #- name: Get project information
-      #  env:
-      #    #GH_TOKEN: ${{ steps.generate_token.output.token }}
-      #    #GH_TOKEN: ${{ github.token }}
-      #    GH_TOKEN: ${{ secrets.TOKEN }}
-      #    USER: moolicc
-      #    PROJ_NUMBER: 8
-      #  run: |
-      #    gh api graphql -f query='
-      #      query($user: String!, $num: Int!) {
-      #        user(login: $user) {
-      #          projectV2(number: $num) {
-      #            id
-      #          }
-      #        }
-      #      }' -f user=$USER -F num=$PROJ_NUMBER > project_data.json
-      #      echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
-
       - name: Get linked issues
         uses: mondeja/pr-linked-issues-action@v2
         id: get_issues
@@ -214,11 +189,11 @@ jobs:
                       $status_value: String!
                     ) {
                       set_status: updateProjectV2ItemFieldValue(input: {
-                        projectId: ${projectId}
-                        item: ${id}
-                        status_field: ${fieldId}
+                        projectId: $project
+                        item: $item
+                        status_field: $status_field
                         status_value: {
-                          singleSelectOptionId: ${optionId}
+                          singleSelectOptionId: status_value
                         }
                       }) {
                         projectV2Item {
@@ -227,8 +202,9 @@ jobs:
                       }
                     }
                   }
-                `);
+                `, { project: projectId, item: id, status_field: fieldId, status_value: optionId });
               }
             } catch(error) {
               core.setOutput('error', error);
             }
+            return;
