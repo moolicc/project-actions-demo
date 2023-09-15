@@ -140,12 +140,12 @@ jobs:
               core.setOutput('error', "Failed to find repository");
               return;
             }
-            if(!result.repository.issues) {
+            if(!result.repository.issue) {
               core.setOutput('error', "Failed to find issues in repository");
               return;
             }
 
-            core.setOutput('ids', issueIds.join());
+            core.setOutput('ids', result.repository.issue);
             return;
             
 
