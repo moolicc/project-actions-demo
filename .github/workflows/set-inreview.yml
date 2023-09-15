@@ -26,7 +26,8 @@ jobs:
       - name: Get project information
         env:
           #GH_TOKEN: ${{ steps.generate_token.output.token }}
-          GH_TOKEN: ${{ github.token }}
+          #GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.TOKEN }}
           USER: moolicc
           PROJ_NUMBER: 8
         run: |
