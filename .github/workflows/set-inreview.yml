@@ -7,15 +7,11 @@ on:
     #  - closed
 
 jobs:
-  Find-Linked-Issue:
+  Update-Linked-Issues:
     #if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: test
-        run: echo ${{ secrets.APP_ID }}
-      
       - name: Generate token
         id: generate_token
         uses: actions/create-github-app-token@v1
@@ -40,5 +36,15 @@ jobs:
               }
             }' -f user=$USER -F num=$PROJ_NUMBER > project_data.json
             echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
-            echo $(jq '.data.user.projectV2.id' project_data.json)
+
+      - name: Get linked issues
+        uses: mondeja/pr-linked-issues-action@v2
+        id: get_issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: Print linked issues
+        run: echo ${{ steps.get_issues.outputs.issues }}
+
+        
             
