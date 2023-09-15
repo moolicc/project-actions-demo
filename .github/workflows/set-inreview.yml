@@ -180,6 +180,7 @@ jobs:
 
             try {
               for(const id of ids) {
+                core.setOutput('error', id);
                 var result = await github.graphql(`
                   mutation {
                     updateProjectV2ItemFieldValue(
