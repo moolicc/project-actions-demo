@@ -181,21 +181,19 @@ jobs:
             try {
               for(const id of ids) {
                 var result = await github.graphql(`
-                  query {
-                    mutation {
-                      updateProjectV2ItemFieldValue(
-                        input: {
-                          projectId: "${projectId}"
-                          itemId: "${id}"
-                          fieldId: "${fieldId}"
-                          value: {
-                            singleSelectOptionId: "${valueId}"
-                          }
+                  mutation {
+                    updateProjectV2ItemFieldValue(
+                      input: {
+                        projectId: "${projectId}"
+                        itemId: "${id}"
+                        fieldId: "${fieldId}"
+                        value: {
+                          singleSelectOptionId: "${valueId}"
                         }
-                      ) {
-                        projectV2Item {
-                          id
-                        }
+                      }
+                    ) {
+                      projectV2Item {
+                        id
                       }
                     }
                   }
