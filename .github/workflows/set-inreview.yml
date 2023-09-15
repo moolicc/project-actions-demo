@@ -145,7 +145,7 @@ jobs:
               return;
             }
 
-            core.setOutput('ids', result.repository.issue);
+            core.setOutput('ids', result.repository.issue.id);
             return;
             
 
