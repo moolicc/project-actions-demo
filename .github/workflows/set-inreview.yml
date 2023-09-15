@@ -44,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
       - name: Print linked issues
-        if: join(steps.get_issues.outputs.issues) != ""
+        if: join(steps.get_issues.outputs.issues) != ''
         id: has_issues
         run: echo ${{ steps.get_issues.outputs.issues }}
         
