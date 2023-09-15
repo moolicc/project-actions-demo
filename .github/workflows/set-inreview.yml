@@ -145,7 +145,7 @@ jobs:
               return;
             }
 
-            core.setOutput('ids', issueIds);
+            core.setOutput('ids', issueIds.join());
             return;
             
 
