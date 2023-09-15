@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: test
+      - run: echo ${{ secrets.APP_ID }}
+      
       - name: Generate token
         id: generate_token
         uses: actions/create-github-app-token@v1
