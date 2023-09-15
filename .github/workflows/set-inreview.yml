@@ -136,7 +136,7 @@ jobs:
           script: |
             const projectId = os.getenv('PROJECT_ID');
             const issueIdOutput = '${{ steps.get_issue_ids.outputs.ids }}';
-            const issueIds = issueIdOutput.split(','), x => Number(x);
+            const issueIds = issueIdOutput.split(',');
 
             var itemIds = [];
             try {
