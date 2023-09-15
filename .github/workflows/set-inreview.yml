@@ -198,12 +198,13 @@ jobs:
                 }
               }
               `);
+
+              core.setOutput('e', result.errors[0].message);
               
             } catch(error) {
               core.setOutput('error', error);
             }
 
-            
             core.setOutput('proj', projectId);
             core.setOutput('itemIds', itemIdOutput);
             core.setOutput('field', fieldId);
