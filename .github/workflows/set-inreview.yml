@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_KEY }}
+      #- name: Generate token
+      #  id: generate_token
+      #  uses: actions/create-github-app-token@v1
+      #  with:
+      #    app_id: ${{ secrets.APP_ID }}
+      #    private_key: ${{ secrets.APP_KEY }}
 
       #- name: Get project information
       #  env:
@@ -126,7 +126,7 @@ jobs:
                 console.log(result);
                 issueIds.push(result.repository.issue.id);
               } catch (error) {
-                result = error.data;
+                //result = error.data;
               }
             }
 
@@ -136,7 +136,7 @@ jobs:
             }
             if(!result.repository.issues) {
               core.setOutput('error', "Failed to find issues in repository");
-              return
+              return;
             }
 
             core.setOutput('ids', issueIds);
