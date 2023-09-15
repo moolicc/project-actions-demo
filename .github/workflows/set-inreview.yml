@@ -121,9 +121,9 @@ jobs:
               issueIdVariables.issueNumber = num;
               try {
                 result = await github.graphql(issueIdQuery, issueIdVariables);
-                //issueIds.push(result.data.repository.issue.id);
+                issueIds.push(result.data.repository.issue.id);
               } catch (error) {
-                //result = error.data;
+                result = error.data;
               }
             }
 
