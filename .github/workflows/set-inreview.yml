@@ -102,7 +102,7 @@ jobs:
               repo: "project-actions-demo"
             }
             var issueIdQuery = `
-              query=($issueNumber: Int!) {
+              query($issueNumber: Int!) {
                 repository(owner: "moolicc", name: "project-actions-demo") {
                   id
                   issue(number: $issueNumber) {
