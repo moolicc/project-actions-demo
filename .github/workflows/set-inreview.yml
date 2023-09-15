@@ -199,7 +199,7 @@ jobs:
               }
               `);
 
-              core.setOutput('e', result.errors[0].message);
+              core.setOutput('e', result.errors);
               
             } catch(error) {
               core.setOutput('error', error);
