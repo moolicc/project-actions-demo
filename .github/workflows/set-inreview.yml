@@ -87,7 +87,63 @@ jobs:
           echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
           echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_ENV
           echo 'REVIEW_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="🔍 Review") |.id' project_data.json) >> $GITHUB_ENV
-    
+
+
+      - name: Get issue node IDs
+        id: get_ids
+        if: steps.has_issues.conclusion != 'skipped'
+        with:
+          github_token: ${{ secrets.TOKEN }}
+          result-encoding: string
+          script: |
+            var issueIdVariables = {
+              owner: 'moolicc',
+              repo: 'project-actions-demo'
+            }
+            var issueIdQuery = `
+              query=($owner: String!, $repo: String!, $issueNumber: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  id
+                  issue(number: $issueNumber) {
+                    id
+                  }
+                }
+              }
+            `;
+
+            const issueNumOutput = '${{ steps.get_issues.outputs.issues }}'
+            const numbers = Array.from(issueNums.split(','), x => Number(x));
+
+            var issueIds = [];
+            for(var num of numbers) {
+              variables.issueIdVariables = num;
+              try {
+                result = await github.graphql(issueIdQuery, issueIdVariables);
+                issueIds.push(result.repository.issue.id);
+              } catch (error) {
+                result = error.data;
+              }
+            }
+
+            if(!result.repository) {
+              core.setOutput('error', "Failed to find repository");
+              return;
+            }
+            if(!result.repository.issues) {
+              core.setOutput('error', "Failed to find issues in repository");
+              return
+            }
+
+            core.setOutput('ids', issueIds);
+            return;
+            
+
+      - name: test
+        run: echo ${{ steps.get_ids.outputs.ids }}
+            
+            
+            
+          
       - name: Update feature status
         if: steps.has_issues.conclusion != 'skipped'
         env:
