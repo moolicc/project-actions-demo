@@ -14,7 +14,7 @@ jobs:
     steps:
 
       - name: test
-      - run: echo ${{ secrets.APP_ID }}
+        run: echo ${{ secrets.APP_ID }}
       
       - name: Generate token
         id: generate_token
