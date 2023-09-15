@@ -171,7 +171,6 @@ jobs:
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.TOKEN }}
-          result-encoding: string
           script: |
             const projectId = process.env.PROJECT_ID;
             const fieldId = process.env.STATUS_FIELD_ID;
