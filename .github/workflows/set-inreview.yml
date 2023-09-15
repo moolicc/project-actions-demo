@@ -167,7 +167,7 @@ jobs:
                       }
                     }
                   }
-                `;
+                `);
                 for(const node of result.node.items.nodes) {
                   if(!node || !node.content) {
                     continue;
