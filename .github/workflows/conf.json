@@ -1,0 +1,11 @@
+{
+  "project": {
+    "number": 8,
+    "field": "status",
+    "field_value": "🔍 Review"
+  },
+  "repo": {
+    "owner": "moolicc",
+    "name": "project-actions-demo"
+  }  
+}
