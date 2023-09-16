@@ -1,5 +1,6 @@
 {
   "project": {
+    "owner": "moolicc",
     "number": 8,
     "field": "status",
     "field_value": "🔍 Review"
