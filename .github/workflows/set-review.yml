@@ -39,6 +39,8 @@ jobs:
         run: |
           echo 'PROJ_NUMBER='$(jq -r '.project.number' <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
           echo 'USER='$(jq -r '.project.owner' <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
+          echo 'REPO_OWNER='$(jq -r '.repo.owner' <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
+          echo 'REPO_NAME='$(jq -r '.repo.name' <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
 
 
       - name: Get project ids
@@ -84,7 +86,9 @@ jobs:
           github-token: ${{ secrets.TOKEN }}
           result-encoding: string
           script: |
-            const issueNumOutput = '${{ steps.get_issues.outputs.issues }}'
+            const repoOwner = process.env.REPO_OWNER;
+            const repoName = process.env.REPO_NAME;
+            const issueNumOutput = '${{ steps.get_issues.outputs.issues }}';
             const numbers = Array.from(issueNumOutput.split(','), x => Number(x));
 
             var issueIds = [];
@@ -93,7 +97,7 @@ jobs:
               try {
                 result = await github.graphql(`
                   query {
-                    repository(owner: "moolicc", name: "project-actions-demo") {
+                    repository(owner: "${repoOwner}", name: "${repoName}") {
                       id
                       issue(number: ${num}){
                         id
