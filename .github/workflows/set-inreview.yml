@@ -32,7 +32,8 @@ jobs:
         uses: jaywcjlove/github-action-read-file@v1.2.1
         id: read_conf
         with:
-          path: .github/workflows/conf.json            
+          branch: ${{ github.base_ref }}
+          path: .github/workflows/conf.json
 
       - name: Load configuration into environment
         run: |
