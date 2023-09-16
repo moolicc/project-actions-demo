@@ -76,8 +76,8 @@ jobs:
             }' -f user=$PROJ_USER -F number=$PROJ_NUMBER > project_data.json
 
           echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
-          echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="$PROJ_FIELD") | .id' project_data.json) >> $GITHUB_ENV
-          echo 'REVIEW_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="$PROJ_FIELD") | .options[] | select(.name=="$PROJ_FIELD_VALUE") |.id' project_data.json) >> $GITHUB_ENV
+          echo 'STATUS_FIELD_ID='$(jq --arg field "$PROJ_FIELD" '.data.user.projectV2.fields.nodes[] | select(.name=="$field") | .id' project_data.json) >> $GITHUB_ENV
+          echo 'REVIEW_OPTION_ID='$(jq --arg field "$PROJ_FIELD" --arg value "$PROJ_FIELD_VALUE" '.data.user.projectV2.fields.nodes[] | select(.name=="$field") | .options[] | select(.name=="$value") |.id' project_data.json) >> $GITHUB_ENV
 
 
       - name: Get issue IDs
