@@ -7,32 +7,214 @@ on:
     #  - closed
 
 jobs:
-  Find-Linked-Issue:
+  Update-Linked-Issues:
     #if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
-      - name: Generate token
-        id: generate_token
-        uses: actions/create-github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_KEY }}
-
-      - name: Get project information
+      - name: Get linked issues
+        uses: mondeja/pr-linked-issues-action@v2
+        id: get_issues
         env:
-          GH_TOKEN: ${{ steps.generate_token.output.token }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: Print linked issues
+        if: join(steps.get_issues.outputs.issues) != ''
+        id: has_issues
+        run: echo ${{ steps.get_issues.outputs.issues }}
+        
+      - name: No linked issues
+        if: steps.has_issues.conclusion == 'skipped'
+        run: echo No linked issues found for PR.
+
+      - name: Get project ids
+        if: steps.has_issues.conclusion != 'skipped'
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
           USER: moolicc
           PROJ_NUMBER: 8
         run: |
           gh api graphql -f query='
-            query($user: String!, $num: Int!) {
+            query($user: String!, $number: Int!) {
               user(login: $user) {
-                projectV2(number: $num) {
+                projectV2(number: $number) {
                   id
+                  fields(first:20) {
+                    nodes {
+                      ... on ProjectV2Field {
+                        id
+                        name
+                      }
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
                 }
               }
-            }' -f user=$USER -F num=$PROJ_NUM > project_data.json
-            echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
-            echo $PROJECT_ID
+            }' -f user=$USER -F number=$PROJ_NUMBER > project_data.json
+
+          echo 'PROJECT_ID='$(jq '.data.user.projectV2.id' project_data.json) >> $GITHUB_ENV
+          echo 'STATUS_FIELD_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .id' project_data.json) >> $GITHUB_ENV
+          echo 'REVIEW_OPTION_ID='$(jq '.data.user.projectV2.fields.nodes[] | select(.name=="Status") | .options[] | select(.name=="🔍 Review") |.id' project_data.json) >> $GITHUB_ENV
+
+
+      - name: Get issue IDs
+        if: steps.has_issues.conclusion != 'skipped'
+        id: get_issue_ids
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          result-encoding: string
+          script: |
+            const issueNumOutput = '${{ steps.get_issues.outputs.issues }}'
+            const numbers = Array.from(issueNumOutput.split(','), x => Number(x));
+
+            var issueIds = [];
+            var result = {};
+            for(var num of numbers) {
+              try {
+                result = await github.graphql(`
+                  query {
+                    repository(owner: "moolicc", name: "project-actions-demo") {
+                      id
+                      issue(number: ${num}){
+                        id
+                      }
+                    }
+                  }`);
+                issueIds.push(result.repository.issue.id);
+              } catch (error) {
+                core.setOutput('error', error);
+              }
+            }
+
+            core.setOutput('ids', issueIds.join());
+            return;
             
+
+      - name: Print issue IDs
+        run: echo ${{ steps.get_issue_ids.outputs.ids }}
+            
+      - name: Get project item IDs
+        if: steps.has_issues.conclusion != 'skipped'
+        id: get_item_ids
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          result-encoding: string
+          script: |
+            const projectId = process.env.PROJECT_ID;
+            const issueIdOutput = '${{ steps.get_issue_ids.outputs.ids }}';
+            const issueIds = issueIdOutput.split(',');
+
+            var itemIds = [];
+            try {
+              var cursor = null;
+              do {
+                var result = await github.graphql(`
+                  query {
+                    rateLimit {
+                      cost
+                      remaining
+                    }
+                    node(id: ${projectId}) {
+                      ... on ProjectV2 {
+                        items(first: 100, after: ${cursor}) {
+                          pageInfo {
+                            hasNextPage
+                            endCursor
+                          }
+                          nodes {
+                            id
+                            content {
+                              ... on Issue {
+                                id
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                `);
+                for(const node of result.node.items.nodes) {
+                  if(!node || !node.content) {
+                    continue;
+                  }
+                  const index = issueIds.indexOf(node.content.id)
+                  if(index >= 0) {
+                    issueIds.splice(index, 1);
+                    itemIds.push(node.id);
+                  }
+                }
+                cursor = result.node.items.pageInfo.endCursor;
+              } while (issueIds.length > 0 && result.node.items.pageInfo.hasNextPage);
+            } catch (error) {
+                core.setOutput('error', error);
+            }
+
+            core.setOutput('ids', itemIds.join());
+            return;
+      
+      - name: Print item IDs
+        run: echo ${{ steps.get_item_ids.outputs.ids }}
+          
+      - name: Update item statuses
+        if: steps.has_issues.conclusion != 'skipped'
+        id: update_statuses
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.TOKEN }}
+          script: |
+            const projectId = process.env.PROJECT_ID;
+            const fieldId = process.env.STATUS_FIELD_ID;
+            const valueId = process.env.REVIEW_OPTION_ID
+            const itemIdOutput = '${{ steps.get_item_ids.outputs.ids }}';
+            const ids = itemIdOutput.split(',');
+
+            try {
+              for(const id of ids) {
+                var result = await github.graphql(`
+                  mutation {
+                    updateProjectV2ItemFieldValue(
+                      input: {
+                        projectId: ${projectId}
+                        itemId: "${id}"
+                        fieldId: ${fieldId}
+                        value: {
+                          singleSelectOptionId: ${valueId}
+                        }
+                      }
+                    ) {
+                      projectV2Item {
+                        id
+                      }
+                    }
+                  }
+                `);
+              }
+
+            } catch(error) {
+              core.setOutput('error', error);
+            }
+
+            core.setOutput('proj', projectId);
+            core.setOutput('itemIds', itemIdOutput);
+            core.setOutput('field', fieldId);
+            core.setOutput('value', valueId);
+            return;
+            
+      - name: Print status update results
+        run: |
+          echo ${{ steps.update_statuses.outputs.proj }}
+          echo ${{ steps.update_statuses.outputs.itemIds }}
+          echo ${{ steps.update_statuses.outputs.field }}
+          echo ${{ steps.update_statuses.outputs.value }}
+          echo ${{ steps.update_statuses.outputs.error }}
+          echo ${{ steps.update_statuses.outputs.e }}
