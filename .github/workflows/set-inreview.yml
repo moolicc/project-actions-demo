@@ -38,7 +38,7 @@ jobs:
       - name: Load configuration into environment
         run: |
           echo 'PROJ_NUMBER='$(jq '.project.number' <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
-          echo 'USER='$(jq '.project.owner <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
+          echo 'USER='$(jq '.project.owner' <<< '${{ steps.read_conf.outputs.content }}') >> $GITHUB_ENV
 
           echo $PROJ_NUMBER
           echo $USER
