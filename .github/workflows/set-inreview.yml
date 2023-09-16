@@ -184,11 +184,11 @@ jobs:
                   mutation {
                     updateProjectV2ItemFieldValue(
                       input: {
-                        projectId: "${projectId}"
+                        projectId: ${projectId}
                         itemId: "${id}"
-                        fieldId: "${fieldId}"
+                        fieldId: ${fieldId}
                         value: {
-                          singleSelectOptionId: "${valueId}"
+                          singleSelectOptionId: ${valueId}
                         }
                       }
                     ) {
