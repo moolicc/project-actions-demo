@@ -27,13 +27,19 @@ jobs:
         if: steps.has_issues.conclusion == 'skipped'
         run: echo No linked issues found for PR.
 
+      - name: Checkout repo
+        if: join(steps.get_issues.outputs.issues) != ''
+        uses: actions/checkout@v4.0.0
+      
+
       - name: Get project ids
         if: steps.has_issues.conclusion != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.TOKEN }}
-          USER: moolicc
-          PROJ_NUMBER: 8
         run: |
+          echo 'PROJ_NUMBER='$(jq '.project.number' .github/workflows/conf.json) >> $GITHUB_ENV
+          echo 'USER='$(jq '.project.owner' .github/workflows/conf.json) >> $GITHUB_ENV
+          
           gh api graphql -f query='
             query($user: String!, $number: Int!) {
               user(login: $user) {
