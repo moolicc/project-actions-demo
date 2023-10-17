@@ -17,3 +17,6 @@ This app now supports copy and pasting text.
 
 
 BLAH BLAH BLAH
+
+
+some more stuff
